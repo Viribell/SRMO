@@ -7,6 +7,12 @@ from PIL import Image, ImageTk
 
 g_Model = None
 
+g_DropoutValue = 0.5
+g_ClassNum = 7
+g_ReqImgSize = (48, 48)
+g_SetBatchSize = 64
+g_Epochs = 30
+
 g_ModelsFolderName = "models"
 g_ModelName = "myModel_save_full"
 g_ModelExt = "keras"
@@ -71,6 +77,23 @@ def cvExpandImgDimFromRight( img ):
     return l_ExpandedImg
 
 #-----------------------------------------MAIN_LOWER_FUNC
+def GetNormalisedEmotion( imgPath, imgSize ):
+    l_Img = cvLoadImage( imgPath )
+    l_Img = cvConvertImageToGrayscale( l_Img )
+
+    l_Face = cvDetectOneByClassifier( l_Img, cvGetCascadeClassifier( g_cvFaceClassifierName ) )
+
+    if len(l_Face) == 0:
+        print( "Face not detected." )
+        return
+
+    l_Emotion = cvCropImgToArea( l_Img, l_Face, imgSize )
+    l_Emotion = cvNormaliseImg( l_Emotion )
+    l_Emotion = cvExpandImgDimFromLeft( l_Emotion ) #batch
+    l_Emotion = cvExpandImgDimFromRight( l_Emotion ) #channel
+
+    return l_Emotion
+
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
 
