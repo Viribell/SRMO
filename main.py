@@ -1,6 +1,10 @@
 from myModel import *
 from myUtils import *
 
+import numpy as np
+import cv2
+from PIL import Image, ImageTk
+
 g_Model = None
 
 g_ModelsFolderName = "models"
@@ -11,6 +15,14 @@ g_TestSetDir = "data/modelTesting"
 g_ClassNames = None
 
 g_EmotionImage = "data/exampleImages/neutral.jpg"
+
+#-----------------------------------------CV
+g_cvFaceClassifierName = "haarcascade_frontalface_default.xml"
+
+def cvGetCascadeClassifier( name ):
+    l_Classifier = cv2.CascadeClassifier( cv2.data.haarcascades + name )
+
+    return l_Classifier
 
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
