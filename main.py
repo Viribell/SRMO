@@ -47,6 +47,29 @@ def cvDetectOneByClassifier( img, classifier, imgScale=1.2, minNeighbours=5 ):
 
     return l_DetectedArea
 
+def cvCropImgToArea( img, detectedArea, imgSize ):
+    l_AreaX, l_AreaY, l_AreaWidth, l_AreaHeight = detectedArea
+
+    l_CroppedImg = img[ l_AreaY:l_AreaY + l_AreaHeight, l_AreaX:l_AreaX + l_AreaWidth ]
+    l_CroppedImg = cvResizeImage( l_CroppedImg, imgSize )
+
+    return l_CroppedImg
+
+def cvNormaliseImg( img ):
+    l_NormalisedImg = img.astype( "float" ) / 255.0 #normalise
+
+    return l_NormalisedImg
+
+def cvExpandImgDimFromLeft( img ):
+    l_ExpandedImg = np.expand_dims( img, axis=0 )
+
+    return l_ExpandedImg
+
+def cvExpandImgDimFromRight( img ):
+    l_ExpandedImg = np.expand_dims( img, axis=-1 )
+
+    return l_ExpandedImg
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
