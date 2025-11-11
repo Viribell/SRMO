@@ -93,6 +93,23 @@ def tkCreateWindow( title, dimension, resizable = False ):
     l_Window.resizable( resizable, resizable )
 
     return l_Window
+
+def tkAddFrame( parent, color="lightgray", dimension=(100, 100) ):
+    l_Frame = tk.Frame( parent, bg = color, width = dimension[0], height = dimension[1] )
+
+    return tkWidget( l_Frame )
+
+
+def tkAddLabel( parent, content, textFont=("Arial", 12)  ):
+    l_Label = tk.Label( parent, text = content, font = textFont )
+
+    return tkWidget( l_Label )
+
+def tkAddButton( parent, content, action, padding=8, textFont=("Arial", 12) ):
+    l_Button = tk.Button( parent, text = content, command = action, font = textFont )
+
+    return tkWidget( l_Button )
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
     l_Img = cvLoadImage( imgPath )
