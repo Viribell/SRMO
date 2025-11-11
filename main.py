@@ -30,13 +30,19 @@ g_tkWindowHeight = 800
 g_tkWindowDimension = str(g_tkWindowWidth) + "x" + str(g_tkWindowHeight)
 g_tkBasicFont = ("Arial", 12)
 
-
 #----
+
 g_ImgLabel = None
 g_ResultLabel = None
 
+g_CurrImgPath = None
+g_CurrCroppedImg = None
+
 #-----------------------------------------MAIN_LOWER_FUNC
+
 def GetNormalisedEmotion( imgPath, imgSize ):
+    global g_CurrCroppedImg
+
     l_Img = cvLoadImage( imgPath )
     l_Img = cvConvertImageToGrayscale( l_Img )
 
@@ -47,6 +53,8 @@ def GetNormalisedEmotion( imgPath, imgSize ):
         return
 
     l_Emotion = cvCropImgToArea( l_Img, l_Face, imgSize )
+    g_CurrCroppedImg = l_Emotion
+
     l_Emotion = cvNormaliseImg( l_Emotion )
     l_Emotion = cvExpandImgDimFromLeft( l_Emotion ) #batch
     l_Emotion = cvExpandImgDimFromRight( l_Emotion ) #channel
@@ -79,8 +87,49 @@ def CreateAndTrainNewModel():
 
     g_ClassNames = GetClassDict( l_TrainItr )
 
-def Test():
-    print()
+def ClearResult():
+    global g_ResultLabel, g_CurrCroppedImg
+
+    g_ResultLabel.Image( None )
+    g_ResultLabel.Text( "" )
+    g_CurrCroppedImg = None
+
+#-----------BUTTONS
+def LoadImage():
+    global g_ImgLabel, g_CurrImgPath
+
+    l_Path = tkOpenFileDialog( "Images", "*.jpg *.jpeg *.png *.bmp" )
+
+    if not l_Path:
+        print( "File choice cancelled." )
+        return
+
+    if g_CurrCroppedImg is not None:
+        ClearResult()
+
+    g_CurrImgPath = l_Path
+
+    l_Img = Image.open( l_Path )
+    l_TKImg = cvImageToTKImage( l_Img )
+
+    g_ImgLabel.Image( l_TKImg )
+
+def DetectEmotion():
+    global g_ResultLabel
+
+    if not g_CurrImgPath: 
+        print( "No filepath!" )
+        return
+
+    l_ClassName = ProcessImageForEmotion( g_CurrImgPath )
+
+    if g_CurrCroppedImg is None:
+        print( "No cropped img!" )
+        return
+
+    g_ResultLabel.Text( l_ClassName )
+    g_ResultLabel.Image( cvCVImageToTKImage( g_CurrCroppedImg, g_ReqImgSize[0], g_ReqImgSize[1]) )
+
 #-----------------------------------------MAIN_UPPER_FUNC
 
 def InitSystem():
@@ -115,8 +164,8 @@ def InitWindow():
     tkAddLabel( l_LeftFrame.Get(), "Image Based Emotion Recognition" ).Pack( pady=8 ).Font( g_tkBasicFont ).Bg( l_LeftFrameColor )
     
     l_ButtonFrame = tkAddFrame( l_LeftFrame.Get() ).Pack( pady=8 )
-    tkAddButton( l_ButtonFrame.Get(), "Load Image", Test ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
-    tkAddButton( l_ButtonFrame.Get(), "Detect Emotion", Test ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+    tkAddButton( l_ButtonFrame.Get(), "Load Image", LoadImage ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+    tkAddButton( l_ButtonFrame.Get(), "Detect Emotion", DetectEmotion ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
 
     l_ImgFrame = tkAddFrame( l_LeftFrame.Get() ).Pack( pady=8 )
     g_ImgLabel = tkAddLabel( l_ImgFrame.Get(), "" ).Pack( pady=8 ).Bg( l_LeftFrameColor )
