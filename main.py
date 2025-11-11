@@ -94,6 +94,17 @@ def GetNormalisedEmotion( imgPath, imgSize ):
 
     return l_Emotion
 
+def PredictEmotion( emotionImg ):
+    l_Predictions = g_Model.predict( emotionImg )
+
+    return l_Predictions
+
+def CategorizeEmotion( predictions ):
+    l_ClassIndex = np.argmax( predictions )
+    l_ClassName = GetFolderByValueFromDict( g_ClassNames, l_ClassIndex )
+
+    return l_ClassName
+
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
 
@@ -126,6 +137,12 @@ def InitSystem():
 
     print( "\n\n\n" )
 
+def ProcessImageForEmotion( imgPath ):
+    l_Emotion = GetNormalisedEmotion( imgPath, g_ReqImgSize )
+    l_Predictions = PredictEmotion( l_Emotion )
+    l_ClassName = CategorizeEmotion( l_Predictions )
+
+    return l_ClassName
 
 #-----------------------------------------MAIN
 
