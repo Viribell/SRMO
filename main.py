@@ -24,6 +24,21 @@ def cvGetCascadeClassifier( name ):
 
     return l_Classifier
 
+def cvLoadImage( imgPath ):
+    l_Img = cv2.imread( imgPath ) #in BGR scale by default
+
+    return l_Img
+
+def cvConvertImageToGrayscale( img ):
+    l_GrayImg = cv2.cvtColor( img, cv2.COLOR_BGR2GRAY )
+
+    return l_GrayImg
+
+def cvResizeImage( img, imgSize ):
+    l_Img = cv2.resize( img, imgSize )
+
+    return l_Img
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
