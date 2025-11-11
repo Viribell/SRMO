@@ -14,6 +14,7 @@ g_ModelName = "myModel_save_full"
 g_ModelExt = "keras"
 g_TrainSetDir = "data/modelTraining"
 g_TestSetDir = "data/modelTesting"
+g_ClassNames = None
 
 #-----------------------------------------MODEL
 def GetLearningModel( dropoutValue=0.5, classNumber=7, inputShape=(48,48,1), filterSize=(3,3) ):
@@ -92,9 +93,40 @@ def GetTestingIterator( dataDir, imgSize, batchSize ):
 
     return l_TestIterator
 
+def GetClassDict( iterator ):
+    return iterator.class_indices
+
+def TrainModel( epochs, model, trainItr, testItr ):
+    l_History = model.fit(
+        trainItr,
+        steps_per_epoch = len(trainItr),
+        epochs = epochs,
+        validation_data = testItr,
+        validation_steps = len(testItr)
+    )
+
+    return l_History
+
+def SaveModel( model, fileName, mainFolder="models", modelExt="keras" ):
+    l_Path = GetFullModelPath( mainFolder, fileName, modelExt )
+
+    os.makedirs( mainFolder, exist_ok=True )
+    model.save( l_Path )
+
+def LoadModel( fileName, mainFolder="models", modelExt="keras" ):
+    l_Path = GetFullModelPath( mainFolder, fileName, modelExt )
+
+    if not os.path.exists( l_Path ):
+        print( "Model file doesn't exist!" )
+        return False
+
+    l_Model = load_model( l_Path )  
+
+    return l_Model
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
-    global g_Model
+    global g_Model, g_ClassNames
 
     g_Model = GetLearningModel();
     g_Model.summary()
@@ -102,9 +134,15 @@ def CreateAndTrainNewModel():
     l_TrainItr = GetTrainingIterator( g_TrainSetDir, g_ReqImgSize, g_SetBatchSize )
     l_TestItr = GetTestingIterator( g_TestSetDir, g_ReqImgSize, g_SetBatchSize )
 
+    l_History = TrainModel( g_Epochs, g_Model, l_TrainItr, l_TestItr )
+
+    SaveModel( g_Model, g_ModelName )
+
+    g_ClassNames = GetClassDict( l_TrainItr )
+
 #-----------------------------------------MAIN_UPPER_FUNC
 def InitSystem():
-    global g_Model
+    global g_Model, g_ClassNames
 
     l_Path = GetFullModelPath( g_ModelsFolderName, g_ModelName, g_ModelExt )
 
@@ -113,6 +151,8 @@ def InitSystem():
         CreateAndTrainNewModel()
     else:
         print( "Loading Existing Model\n" )
+        g_Model = LoadModel( g_ModelName )
+        g_Model.summary()
 
     print( "\n\n\n" )
 
