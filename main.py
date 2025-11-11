@@ -22,6 +22,18 @@ g_ClassNames = None
 
 g_EmotionImage = "data/exampleImages/neutral.jpg"
 
+g_tkWindow = None
+g_tkWindowTitle = "Emotion Recognition"
+g_tkWindowWidth = 1020
+g_tkWindowHeight = 800
+g_tkWindowDimension = str(g_tkWindowWidth) + "x" + str(g_tkWindowHeight)
+g_tkBasicFont = ("Arial", 12)
+
+
+#----
+g_ImgLabel = None
+g_ResultLabel = None
+
 #-----------------------------------------TK
 class tkWidget:
     def __init__(self, widget):
@@ -161,7 +173,10 @@ def CreateAndTrainNewModel():
 
     g_ClassNames = GetClassDict( l_TrainItr )
 
+def Test():
+    print()
 #-----------------------------------------MAIN_UPPER_FUNC
+
 def InitSystem():
     global g_Model, g_ClassNames
 
@@ -178,6 +193,36 @@ def InitSystem():
 
     print( "\n\n\n" )
 
+def InitWindow():
+    global g_tkWindow, g_ImgLabel, g_ResultLabel
+
+    l_LeftFrameColor = "lightgray"
+    l_RightFrameColor = "yellow"
+
+    g_tkWindow = tkCreateWindow( g_tkWindowTitle, g_tkWindowDimension )
+
+    l_LeftFrame = tkAddFrame( g_tkWindow, l_LeftFrameColor ).Dimension( g_tkWindowWidth / 2, 100 ).Pack( side="left", fill="y" ).PackPropagate( False )
+    l_RightFrame = tkAddFrame( g_tkWindow, l_RightFrameColor ).Dimension( 100, 100 ).Pack( side="right", fill="both", expand=True ).PackPropagate( False )
+
+
+    #----LEFT_FRAME
+    tkAddLabel( l_LeftFrame.Get(), "Image Based Emotion Recognition" ).Pack( pady=8 ).Font( g_tkBasicFont ).Bg( l_LeftFrameColor )
+    
+    l_ButtonFrame = tkAddFrame( l_LeftFrame.Get() ).Pack( pady=8 )
+    tkAddButton( l_ButtonFrame.Get(), "Load Image", Test ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+    tkAddButton( l_ButtonFrame.Get(), "Detect Emotion", Test ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+
+    l_ImgFrame = tkAddFrame( l_LeftFrame.Get() ).Pack( pady=8 )
+    g_ImgLabel = tkAddLabel( l_ImgFrame.Get(), "" ).Pack( pady=8 ).Bg( l_LeftFrameColor )
+
+    l_ResultFrame = tkAddFrame( l_LeftFrame.Get() ).Pack( pady=8 )
+    g_ResultLabel = tkAddLabel( l_ResultFrame.Get(), "" ).Pack( pady=8 ).Bg( l_LeftFrameColor ).Config( compound="top" )
+    #----LEFT_FRAME
+
+    #----RIGHT_FRAME
+    tkAddLabel( l_RightFrame.Get(), "Camera Based Emotion Recognition" ).Pack( pady=8 ).Font( g_tkBasicFont ).Bg( l_RightFrameColor )
+    #----RIGHT_FRAME
+
 def ProcessImageForEmotion( imgPath ):
     l_Emotion = GetNormalisedEmotion( imgPath, g_ReqImgSize )
     l_Predictions = PredictEmotion( l_Emotion )
@@ -185,6 +230,13 @@ def ProcessImageForEmotion( imgPath ):
 
     return l_ClassName
 
+def HandleProgram():
+
+    g_tkWindow.mainloop()
+
+
 #-----------------------------------------MAIN
 
 InitSystem()
+InitWindow()
+HandleProgram()
