@@ -124,6 +124,31 @@ def LoadModel( fileName, mainFolder="models", modelExt="keras" ):
 
     return l_Model
 
+#-----------------------------------------UTILS
+def GetFoldersDict( datasetPath ):
+    l_Folders = []
+    l_FolderIndices = {}
+
+    for item in os.listdir( datasetPath ):
+        itemPath = os.path.join( datasetPath, item )
+
+        if os.path.isdir( itemPath ): l_Folders.append( item )
+
+    l_Folders.sort()
+
+    for index, folder in enumerate( l_Folders ):
+        l_FolderIndices[folder] = index
+
+    return l_FolderIndices
+
+def GetFolderByValueFromDict( folderDict, index ):
+    l_Key = None
+
+    for key, value in folderDict.items():
+        if value == index: l_Key = key
+
+    return l_Key
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
@@ -153,6 +178,7 @@ def InitSystem():
         print( "Loading Existing Model\n" )
         g_Model = LoadModel( g_ModelName )
         g_Model.summary()
+        g_ClassNames = GetFoldersDict( g_TrainSetDir )
 
     print( "\n\n\n" )
 
