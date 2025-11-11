@@ -19,6 +19,26 @@ def cvConvertImageToGrayscale( img ):
 
     return l_GrayImg
 
+def cvCVImageToTKImage( cvImg, width=250, height=250 ):
+	l_Img = cvImg
+
+	if len(l_Img.shape) == 2: l_Img = cv2.cvtColor( l_Img, cv2.COLOR_GRAY2RGB )
+
+	l_PILImg = Image.fromarray( l_Img )
+	l_PILImg.thumbnail( (width, height) )
+
+	l_TKImg = ImageTk.PhotoImage( l_PILImg )
+
+	return l_TKImg
+
+def cvImageToTKImage( pilImg, width=250, height=250 ):
+	l_PILImg = pilImg
+	l_PILImg.thumbnail( (width, height) )
+
+	l_TKImg = ImageTk.PhotoImage( l_PILImg )
+
+	return l_TKImg
+
 def cvResizeImage( img, imgSize ):
     l_Img = cv2.resize( img, imgSize )
 
