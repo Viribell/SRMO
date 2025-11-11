@@ -2,6 +2,9 @@ from myModel import *
 from myUtils import *
 from myCV import *
 
+import tkinter as tk
+from tkinter import filedialog
+
 g_Model = None
 
 g_DropoutValue = 0.5
@@ -18,6 +21,70 @@ g_TestSetDir = "data/modelTesting"
 g_ClassNames = None
 
 g_EmotionImage = "data/exampleImages/neutral.jpg"
+
+#-----------------------------------------TK
+class tkWidget:
+    def __init__(self, widget):
+        self.widget = widget
+
+    def Pack(self, **kwargs): #pady, padx, side(top,bottom,left,right), expand(bool), fill(x,y,both)
+        self.widget.pack( **kwargs )
+        return self
+
+    def PackPropagate(self, isOn):
+        self.widget.pack_propagate( isOn )
+        return self
+
+    def Grid(self, **kwargs): #row, column, sticky(n,s,e,w), columnspan, rowspan, padx, pady, 
+        self.widget.grid( **kwargs )
+        return self
+
+    def Place(self, **kwargs): #x, y,
+        self.widget.place( **kwargs )
+        return self
+
+    def Background(self, color):
+        self.widget.config( bg = color )
+        return self
+
+    def Bg(self, color):
+    	return self.Background( color )
+
+    def Foreground(self, color):
+        self.widget.config( fg = color )
+        return self
+
+    def Fg(self, color):
+    	return self.Foreground( color )
+
+    def Image(self, img):
+    	if img is None:
+    		self.widget.config( image = "" )
+    		self.widget.image = None
+    	else:
+    		self.widget.config( image = img )
+    		self.widget.image = img
+    		
+    	return self
+
+    def Text( self, content ):
+    	self.widget.config( text = content )
+    	return self
+
+    def Font(self, textFont): #(name, size, type)
+        self.widget.config( font = textFont )
+        return self
+
+    def Dimension(self, dimWidth, dimHeight):
+        self.widget.config( width = dimWidth, height = dimHeight )
+        return self
+
+    def Config(self, **kwargs):
+        self.widget.config( **kwargs )
+        return self
+
+    def Get(self):
+        return self.widget
 
 #-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
