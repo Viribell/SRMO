@@ -45,6 +45,53 @@ def GetFullModelPath( mainFolder, modelName, modelExt ):
 
     return fullPath
 
+def GetTrainingDataGen():
+    l_DataGen = ImageDataGenerator(
+        rescale= 1./255,
+        rotation_range= 30,
+        shear_range= 0.3,
+        zoom_range= 0.3,
+        horizontal_flip= True,
+        fill_mode = 'nearest'
+    )
+
+    return l_DataGen
+
+def GetTestingDataGen():
+    l_DataGen = ImageDataGenerator(
+        rescale = 1./255
+    )
+
+    return l_DataGen
+
+def GetTrainingIterator( dataDir, imgSize, batchSize ):
+    l_DataGen = GetTrainingDataGen()
+
+    l_TrainIterator = l_DataGen.flow_from_directory(
+        dataDir,
+        target_size = imgSize,
+        color_mode = 'grayscale',
+        batch_size = batchSize,
+        class_mode = 'categorical',
+        shuffle = True
+    )
+
+    return l_TrainIterator
+
+def GetTestingIterator( dataDir, imgSize, batchSize ):
+    l_DataGen = GetTestingDataGen()
+
+    l_TestIterator = l_DataGen.flow_from_directory(
+        dataDir,
+        target_size = imgSize,
+        color_mode = 'grayscale',
+        batch_size = batchSize,
+        class_mode = 'categorical',
+        shuffle = False
+    )
+
+    return l_TestIterator
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
     global g_Model
@@ -52,6 +99,8 @@ def CreateAndTrainNewModel():
     g_Model = GetLearningModel();
     g_Model.summary()
 
+    l_TrainItr = GetTrainingIterator( g_TrainSetDir, g_ReqImgSize, g_SetBatchSize )
+    l_TestItr = GetTestingIterator( g_TestSetDir, g_ReqImgSize, g_SetBatchSize )
 
 #-----------------------------------------MAIN_UPPER_FUNC
 def InitSystem():
