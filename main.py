@@ -39,6 +39,14 @@ def cvResizeImage( img, imgSize ):
 
     return l_Img
 
+def cvDetectOneByClassifier( img, classifier, imgScale=1.2, minNeighbours=5 ):
+    if not isinstance( classifier, cv2.CascadeClassifier ):
+        raise TypeError( "Given classifier is not CascadeClassifier!" )
+  
+    l_DetectedArea = classifier.detectMultiScale( img, imgScale, minNeighbours )[0]
+
+    return l_DetectedArea
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
