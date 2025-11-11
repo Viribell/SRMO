@@ -86,6 +86,13 @@ class tkWidget:
     def Get(self):
         return self.widget
 
+def tkCreateWindow( title, dimension, resizable = False ):
+    l_Window = tk.Tk()
+    l_Window.title( title )
+    l_Window.geometry( dimension )
+    l_Window.resizable( resizable, resizable )
+
+    return l_Window
 #-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
     l_Img = cvLoadImage( imgPath )
