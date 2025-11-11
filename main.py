@@ -110,6 +110,13 @@ def tkAddButton( parent, content, action, padding=8, textFont=("Arial", 12) ):
 
     return tkWidget( l_Button )
 
+def tkOpenFileDialog( filterName, filterPattern ):
+	l_Path = filedialog.askopenfilename(
+    	filetypes=[(filterName, filterPattern)]
+	)	
+
+	return l_Path
+
 #-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
     l_Img = cvLoadImage( imgPath )
