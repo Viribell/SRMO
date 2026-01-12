@@ -12,10 +12,10 @@ g_DropoutValue = 0.5
 g_ClassNum = 7
 g_ReqImgSize = (48, 48)
 g_SetBatchSize = 64
-g_Epochs = 30
+g_Epochs = 170
 
 g_ModelsFolderName = "models"
-g_ModelName = "myModel_save_full"
+g_ModelName = "myModel_save_full_new"
 g_ModelExt = "keras"
 g_TrainSetDir = "data/modelTraining"
 g_TestSetDir = "data/modelTesting"
