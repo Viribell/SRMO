@@ -12,10 +12,10 @@ g_DropoutValue = 0.5
 g_ClassNum = 7
 g_ReqImgSize = (48, 48)
 g_SetBatchSize = 64
-g_Epochs = 170
+g_Epochs = 30
 
 g_ModelsFolderName = "models"
-g_ModelName = "myModel_save_full_new"
+g_ModelName = "myModel_save_full"
 g_ModelExt = "keras"
 g_TrainSetDir = "data/modelTraining"
 g_TestSetDir = "data/modelTesting"
@@ -37,12 +37,14 @@ g_ImgLabel = None
 g_ResultLabel = None
 g_VideoLabel = None
 g_VideoResultLabel = None
+g_ImgPredictions = ""
 
 g_CurrImgPath = None
 g_CurrCroppedImg = None
 
 g_StartedCapture = False
 g_LastCapture = ""
+g_LastFaces = []
 
 #-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
@@ -76,6 +78,29 @@ def CategorizeEmotion( predictions ):
     l_ClassName = GetFolderByValueFromDict( g_ClassNames, l_ClassIndex )
 
     return l_ClassName
+
+def PrintPredictions( predictions ):
+    l_Out = ""    
+
+    for i, prediction in enumerate( predictions[0] ):
+        l_ClassName = GetFolderByValueFromDict( g_ClassNames, i )
+        l_Normal = prediction * 100
+        l_Out += f"{l_ClassName}: {l_Normal:.2f}%\n"
+
+    return l_Out
+
+def PrintPredictionsShort( predictions ):
+    l_Out = ""
+    l_Center = int(len( predictions[0] ) / 2)
+
+    for i, prediction in enumerate( predictions[0] ):
+        l_ClassName = GetFolderByValueFromDict( g_ClassNames, i )
+        l_Normal = prediction * 100
+        l_Out += f"[{l_ClassName[:2]}]{l_Normal:.2f}% "
+
+        if i == l_Center: l_Out += "\n"
+
+    return l_Out
 
 
 def CreateAndTrainNewModel():
@@ -134,11 +159,11 @@ def DetectEmotion():
         print( "No cropped img!" )
         return
 
-    g_ResultLabel.Text( l_ClassName )
+    g_ResultLabel.Text( "Emotion: " + l_ClassName + "\n Predictions: \n" + g_ImgPredictions )
     g_ResultLabel.Image( cvCVImageToTKImage( g_CurrCroppedImg, g_ReqImgSize[0], g_ReqImgSize[1]) )
 
 def UpdateVideoCapture():
-    global g_VideoCapture, g_VideoLabel, g_VideoResultLabel, g_tkTaskId, g_LastCapture, g_ReqImgSize
+    global g_VideoCapture, g_VideoLabel, g_VideoResultLabel, g_tkTaskId, g_LastCapture, g_ReqImgSize, g_LastFaces
 
     l_Ret, l_Frame = g_VideoCapture.read()
     if not l_Ret:
@@ -147,7 +172,10 @@ def UpdateVideoCapture():
         return
 
     l_GrayCapture = cvConvertImageToGrayscale( l_Frame )
-    l_Faces = cvDetectMultipleByClassifier( l_GrayCapture, cvGetCascadeClassifier( g_cvFaceClassifierName ) )
+    l_Faces = cvDetectMultipleByClassifier( l_GrayCapture, cvGetCascadeClassifier( g_cvFaceClassifierName ), 1.2, 9 )
+
+    if len(l_Faces) == 0: l_Faces = g_LastFaces
+    else: g_LastFaces = l_Faces
 
     if len(l_Faces) != 0: 
         g_LastCapture = ""
@@ -160,8 +188,9 @@ def UpdateVideoCapture():
             l_Emotion = cvExpandImgDimFromRight( l_Emotion ) #channel
             l_Predictions = PredictEmotion( l_Emotion )
             l_ClassName = CategorizeEmotion( l_Predictions )
+            l_ShortPredictions = PrintPredictionsShort( l_Predictions )
 
-            g_LastCapture += f"Face {i}: {l_ClassName}\n"
+            g_LastCapture += f"Face {i}: {l_ClassName}, {l_ShortPredictions}\n"
 
     g_VideoLabel.Image( cvCVImageToTKImage( l_Frame ) )
     g_VideoResultLabel.Text( g_LastCapture )
@@ -169,13 +198,14 @@ def UpdateVideoCapture():
     g_tkTaskId = tkScheduleTaskAfter( g_tkWindow, 10, UpdateVideoCapture )
 
 def StartVideoCapture():
-    global g_StartedCapture, g_VideoLabel, g_VideoResultLabel, g_tkWindow, g_tkTaskId
+    global g_StartedCapture, g_VideoResultLabel, g_tkWindow, g_tkTaskId, g_VideoCapture
 
     if g_StartedCapture is True: return
 
     g_VideoCapture = cvGetDefaultVideoCapture()
     if not g_VideoCapture.isOpened():
         g_VideoCapture = None
+        print( "Failed to find camera." )
         g_VideoResultLabel.Text( "Couldn't find any camera." )
         return
 
@@ -186,7 +216,7 @@ def StartVideoCapture():
 
 
 def StopVideoCapture():
-    global g_StartedCapture, g_VideoLabel, g_tkWindow, g_tkTaskId, g_VideoCapture
+    global g_StartedCapture, g_VideoLabel, g_tkWindow, g_tkTaskId, g_VideoCapture, g_LastFaces
 
     if g_StartedCapture is False: return
 
@@ -196,6 +226,8 @@ def StopVideoCapture():
 
     g_VideoCapture.release()
     g_VideoCapture = None
+
+    g_LastFaces = []
 
 
 #-----------------------------------------MAIN_UPPER_FUNC
@@ -257,9 +289,14 @@ def InitWindow(): #!!!!!!!!!!!
     #----RIGHT_FRAME
 
 def ProcessImageForEmotion( imgPath ):
+    global g_ImgPredictions
+
+    g_ImgPredictions = ""
     l_Emotion = GetNormalisedEmotion( imgPath, g_ReqImgSize )
     l_Predictions = PredictEmotion( l_Emotion )
     l_ClassName = CategorizeEmotion( l_Predictions )
+
+    g_ImgPredictions = PrintPredictions( l_Predictions )
 
     return l_ClassName
 
