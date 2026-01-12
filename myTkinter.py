@@ -26,28 +26,28 @@ class tkWidget:
         return self
 
     def Bg(self, color):
-    	return self.Background( color )
+        return self.Background( color )
 
     def Foreground(self, color):
         self.widget.config( fg = color )
         return self
 
     def Fg(self, color):
-    	return self.Foreground( color )
+        return self.Foreground( color )
 
     def Image(self, img):
-    	if img is None:
-    		self.widget.config( image = "" )
-    		self.widget.image = None
-    	else:
-    		self.widget.config( image = img )
-    		self.widget.image = img
-    		
-    	return self
+        if img is None:
+            self.widget.config( image = "" )
+            self.widget.image = None
+        else:
+            self.widget.config( image = img )
+            self.widget.image = img
+            
+        return self
 
     def Text( self, content ):
-    	self.widget.config( text = content )
-    	return self
+        self.widget.config( text = content )
+        return self
 
     def Font(self, textFont): #(name, size, type)
         self.widget.config( font = textFont )
@@ -90,8 +90,16 @@ def tkAddButton( parent, content, action, padding=8, textFont=("Arial", 12) ):
     return tkWidget( l_Button )
 
 def tkOpenFileDialog( filterName, filterPattern ):
-	l_Path = filedialog.askopenfilename(
-    	filetypes=[(filterName, filterPattern)]
-	)	
+    l_Path = filedialog.askopenfilename(
+        filetypes=[(filterName, filterPattern)]
+    )   
 
-	return l_Path
+    return l_Path
+
+def tkScheduleTaskAfter( tkWindow, time, func ):
+    if tkWindow is None: return -1
+
+    return tkWindow.after( time, func )
+
+def tkCancelTask( tkWindow, taskID ):
+    tkWindow.after_cancel( taskID )

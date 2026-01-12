@@ -22,6 +22,7 @@ g_TestSetDir = "data/modelTesting"
 g_ClassNames = None
 
 g_EmotionImage = "data/exampleImages/neutral.jpg"
+g_VideoCapture = None #!!!!!!!!!!!
 
 g_tkWindow = None
 g_tkWindowTitle = "Emotion Recognition"
@@ -29,17 +30,21 @@ g_tkWindowWidth = 1020
 g_tkWindowHeight = 800
 g_tkWindowDimension = str(g_tkWindowWidth) + "x" + str(g_tkWindowHeight)
 g_tkBasicFont = ("Arial", 12)
+g_tkTaskId = -1
 
 #----
-
 g_ImgLabel = None
 g_ResultLabel = None
+g_VideoLabel = None
+g_VideoResultLabel = None
 
 g_CurrImgPath = None
 g_CurrCroppedImg = None
 
-#-----------------------------------------MAIN_LOWER_FUNC
+g_StartedCapture = False
+g_LastCapture = ""
 
+#-----------------------------------------MAIN_LOWER_FUNC
 def GetNormalisedEmotion( imgPath, imgSize ):
     global g_CurrCroppedImg
 
@@ -72,6 +77,7 @@ def CategorizeEmotion( predictions ):
 
     return l_ClassName
 
+
 def CreateAndTrainNewModel():
     global g_Model, g_ClassNames
 
@@ -93,6 +99,7 @@ def ClearResult():
     g_ResultLabel.Image( None )
     g_ResultLabel.Text( "" )
     g_CurrCroppedImg = None
+
 
 #-----------BUTTONS
 def LoadImage():
@@ -130,8 +137,68 @@ def DetectEmotion():
     g_ResultLabel.Text( l_ClassName )
     g_ResultLabel.Image( cvCVImageToTKImage( g_CurrCroppedImg, g_ReqImgSize[0], g_ReqImgSize[1]) )
 
-#-----------------------------------------MAIN_UPPER_FUNC
+def UpdateVideoCapture():
+    global g_VideoCapture, g_VideoLabel, g_VideoResultLabel, g_tkTaskId, g_LastCapture, g_ReqImgSize
 
+    l_Ret, l_Frame = g_VideoCapture.read()
+    if not l_Ret:
+        g_VideoResultLabel.Text( "Error while trying to capture video." )
+        g_VideoCapture = None
+        return
+
+    l_GrayCapture = cvConvertImageToGrayscale( l_Frame )
+    l_Faces = cvDetectMultipleByClassifier( l_GrayCapture, cvGetCascadeClassifier( g_cvFaceClassifierName ) )
+
+    if len(l_Faces) != 0: 
+        g_LastCapture = ""
+        cvMarkDetectedAreas( l_Frame, l_Faces )
+
+        for i, face in enumerate( l_Faces ):
+            l_Emotion = cvCropImgToArea( l_GrayCapture, face, g_ReqImgSize )
+            l_Emotion = cvNormaliseImg( l_Emotion )
+            l_Emotion = cvExpandImgDimFromLeft( l_Emotion ) #batch
+            l_Emotion = cvExpandImgDimFromRight( l_Emotion ) #channel
+            l_Predictions = PredictEmotion( l_Emotion )
+            l_ClassName = CategorizeEmotion( l_Predictions )
+
+            g_LastCapture += f"Face {i}: {l_ClassName}\n"
+
+    g_VideoLabel.Image( cvCVImageToTKImage( l_Frame ) )
+    g_VideoResultLabel.Text( g_LastCapture )
+
+    g_tkTaskId = tkScheduleTaskAfter( g_tkWindow, 10, UpdateVideoCapture )
+
+def StartVideoCapture():
+    global g_StartedCapture, g_VideoLabel, g_VideoResultLabel, g_tkWindow, g_tkTaskId
+
+    if g_StartedCapture is True: return
+
+    g_VideoCapture = cvGetDefaultVideoCapture()
+    if not g_VideoCapture.isOpened():
+        g_VideoCapture = None
+        g_VideoResultLabel.Text( "Couldn't find any camera." )
+        return
+
+    g_StartedCapture = True
+
+    g_tkTaskId = tkScheduleTaskAfter( g_tkWindow, 10, UpdateVideoCapture )
+
+
+
+def StopVideoCapture():
+    global g_StartedCapture, g_VideoLabel, g_tkWindow, g_tkTaskId, g_VideoCapture
+
+    if g_StartedCapture is False: return
+
+    tkCancelTask( g_tkWindow, g_tkTaskId )
+    g_tkTaskId = -1
+    g_StartedCapture = False
+
+    g_VideoCapture.release()
+    g_VideoCapture = None
+
+
+#-----------------------------------------MAIN_UPPER_FUNC
 def InitSystem():
     global g_Model, g_ClassNames
 
@@ -148,8 +215,8 @@ def InitSystem():
 
     print( "\n\n\n" )
 
-def InitWindow():
-    global g_tkWindow, g_ImgLabel, g_ResultLabel
+def InitWindow(): #!!!!!!!!!!!
+    global g_tkWindow, g_ImgLabel, g_ResultLabel, g_VideoLabel, g_VideoResultLabel
 
     l_LeftFrameColor = "lightgray"
     l_RightFrameColor = "yellow"
@@ -176,6 +243,17 @@ def InitWindow():
 
     #----RIGHT_FRAME
     tkAddLabel( l_RightFrame.Get(), "Camera Based Emotion Recognition" ).Pack( pady=8 ).Font( g_tkBasicFont ).Bg( l_RightFrameColor )
+    
+    l_ButtonRightFrame = tkAddFrame( l_RightFrame.Get() ).Pack( pady=8 ).Bg( l_RightFrameColor )
+    tkAddButton( l_ButtonRightFrame.Get(), "Start Capture", StartVideoCapture ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+    tkAddButton( l_ButtonRightFrame.Get(), "Stop Capture", StopVideoCapture ).Pack( side="left", padx=8 ).Font( g_tkBasicFont )
+
+    l_VideoFrame = tkAddFrame( l_RightFrame.Get() ).Pack( pady=8 ).Bg( l_RightFrameColor )
+    g_VideoLabel = tkAddLabel( l_VideoFrame.Get(), "" ).Pack( pady=8 ).Bg( l_RightFrameColor )
+
+    l_ResultRightFrame = tkAddFrame( l_RightFrame.Get() ).Pack( pady=8 ).Bg( l_RightFrameColor )
+    g_VideoResultLabel = tkAddLabel( l_ResultRightFrame.Get(), "" ).Pack( pady=8 ).Bg( l_RightFrameColor ).Config( compound="top" )
+
     #----RIGHT_FRAME
 
 def ProcessImageForEmotion( imgPath ):
@@ -185,10 +263,12 @@ def ProcessImageForEmotion( imgPath ):
 
     return l_ClassName
 
-def HandleProgram():
+def HandleProgram():  #!!!!!!!!!!!
+    global g_tkWindow
 
     g_tkWindow.mainloop()
 
+    if g_VideoCapture is not None: g_VideoCapture.release()
 
 #-----------------------------------------MAIN
 

@@ -20,24 +20,25 @@ def cvConvertImageToGrayscale( img ):
     return l_GrayImg
 
 def cvCVImageToTKImage( cvImg, width=250, height=250 ):
-	l_Img = cvImg
+    l_Img = cvImg
 
-	if len(l_Img.shape) == 2: l_Img = cv2.cvtColor( l_Img, cv2.COLOR_GRAY2RGB )
+    if len(l_Img.shape) == 2: l_Img = cv2.cvtColor( l_Img, cv2.COLOR_GRAY2RGB )
 
-	l_PILImg = Image.fromarray( l_Img )
-	l_PILImg.thumbnail( (width, height) )
+    l_PILImg = Image.fromarray( l_Img )
+    l_PILImg.thumbnail( (width, height) )
 
-	l_TKImg = ImageTk.PhotoImage( l_PILImg )
+    l_TKImg = ImageTk.PhotoImage( l_PILImg )
 
-	return l_TKImg
+    return l_TKImg
 
 def cvImageToTKImage( pilImg, width=250, height=250 ):
-	l_PILImg = pilImg
-	l_PILImg.thumbnail( (width, height) )
+    l_PILImg = pilImg
+    l_PILImg.thumbnail( (width, height) )
 
-	l_TKImg = ImageTk.PhotoImage( l_PILImg )
+    l_TKImg = ImageTk.PhotoImage( l_PILImg )
 
-	return l_TKImg
+    return l_TKImg
+
 
 def cvResizeImage( img, imgSize ):
     l_Img = cv2.resize( img, imgSize )
@@ -51,6 +52,14 @@ def cvDetectOneByClassifier( img, classifier, imgScale=1.2, minNeighbours=5 ):
     l_DetectedArea = classifier.detectMultiScale( img, imgScale, minNeighbours )[0]
 
     return l_DetectedArea
+
+def cvDetectMultipleByClassifier( img, classifier, imgScale=1.2, minNeighbours=5 ):  #!!!!!!!!!!!
+    if not isinstance( classifier, cv2.CascadeClassifier ):
+        raise TypeError( "Given classifier is not CascadeClassifier!" )
+  
+    l_DetectedAreas = classifier.detectMultiScale( img, imgScale, minNeighbours )
+
+    return l_DetectedAreas
 
 def cvCropImgToArea( img, detectedArea, imgSize ):
     l_AreaX, l_AreaY, l_AreaWidth, l_AreaHeight = detectedArea
@@ -74,3 +83,15 @@ def cvExpandImgDimFromRight( img ):
     l_ExpandedImg = np.expand_dims( img, axis=-1 )
 
     return l_ExpandedImg
+
+def cvGetDefaultVideoCapture():  #!!!!!!!!!!!
+    return cv2.VideoCapture(0)
+
+def cvMarkDetectedAreas( img, detected ):
+    for i, (x, y, w, h) in enumerate(detected):
+        cv2.rectangle( img, (x, y), (x + w, y + h), (0, 255, 0), 2 )
+        cv2.putText( 
+            img, f"Face {i}", (x, y - 10), 
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7, (0, 255, 0), 2
+        )
