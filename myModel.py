@@ -86,6 +86,9 @@ def GetTestingIterator( dataDir, imgSize, batchSize ):
 def GetClassDict( iterator ):
     return iterator.class_indices
 
+def GetFullClasses( iterator ):
+    return iterator.classes
+
 def TrainModel( epochs, model, trainItr, testItr ):
     l_History = model.fit(
         trainItr,
@@ -93,6 +96,18 @@ def TrainModel( epochs, model, trainItr, testItr ):
         epochs = epochs,
         validation_data = testItr,
         validation_steps = len(testItr)
+    )
+
+    return l_History
+
+def TrainModel( epochs, model, trainItr, testItr, givenCallbacks ):
+    l_History = model.fit(
+        trainItr,
+        steps_per_epoch = len(trainItr),
+        epochs = epochs,
+        validation_data = testItr,
+        validation_steps = len(testItr),
+        callbacks = givenCallbacks
     )
 
     return l_History
