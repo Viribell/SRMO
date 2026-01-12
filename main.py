@@ -15,7 +15,7 @@ g_SetBatchSize = 64
 g_Epochs = 30
 
 g_ModelsFolderName = "models"
-g_ModelName = "myModel_save_full_new"
+g_ModelName = "myModel_save_full_new_best"
 g_ModelExt = "keras"
 g_TrainSetDir = "data/modelTraining"
 g_TestSetDir = "data/modelTesting"
